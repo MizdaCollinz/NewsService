@@ -1,5 +1,9 @@
 package news.domain;
 
-public class Article {
+import javax.persistence.Entity;
 
+@Entity
+public class Article {
+	String category;
+	Reporter writer;
 }

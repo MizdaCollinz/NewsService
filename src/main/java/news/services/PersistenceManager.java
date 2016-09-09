@@ -1,4 +1,4 @@
-package nz.ac.auckland.auditorPU;
+package news.services;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
