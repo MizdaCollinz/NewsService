@@ -11,7 +11,7 @@ import javax.persistence.Persistence;
  * PersistentManager's createEntityManager() method to acquire one. The 
  * requester is responsible for closing the session. 
  * 
- * @author Ian Warren
+ * @author Ian Warren - With minor modification by Benjamin Collins
  *
  */
 public class PersistenceManager {
@@ -20,7 +20,7 @@ public class PersistenceManager {
 	private EntityManagerFactory _entityManagerFactory;
 	
 	protected PersistenceManager() {
-		_entityManagerFactory = Persistence.createEntityManagerFactory("auditorPU");
+		_entityManagerFactory = Persistence.createEntityManagerFactory("newsPersistence");
 	}
 	
 	public EntityManager createEntityManager() {
