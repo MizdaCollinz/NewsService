@@ -22,8 +22,11 @@
 	     
 	<persistence-unit name="newsPersistence">
 		<!--  Classes which are to be mapped and therefore persistent. -->
-		<class>nz.ac.auckland.auditorPU.AuditEntry</class>
-		<class>nz.ac.auckland.auditorPU.User</class>
+		<class>news.domain.Article</class>
+		<class>news.domain.Reader</class>
+		<class>news.domain.Reporter</class>
+		<class>news.domain.User</class>
+		<class>news.domain.Category</class>
 
 		<properties>
 			<!--  Configure the data source. In this case the embedded H2 database

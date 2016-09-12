@@ -1,9 +1,12 @@
 package news.domain;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
@@ -18,6 +21,8 @@ public class Article {
 	private int id;
 	
 	private String title;
+	
+	@ManyToOne(cascade=CascadeType.PERSIST)
 	private Category category;
 	
 	@ManyToOne(fetch=FetchType.LAZY, optional=false)

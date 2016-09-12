@@ -9,9 +9,9 @@ import javax.persistence.InheritanceType;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 
-@Entity
-@XmlAccessorType(XmlAccessType.FIELD)
-@Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
+//@Entity
+//@XmlAccessorType(XmlAccessType.FIELD)
+//@Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
 public class Reader extends User {
 	List<Category> favouriteCategories;
 	
