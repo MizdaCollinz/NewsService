@@ -3,6 +3,7 @@ package news.services;
 import java.io.InputStream;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import news.domain.Article;
+import news.domain.Reporter;
 
 @Path("/news")
 public class NewsResource {
@@ -39,9 +41,21 @@ public class NewsResource {
 			Object obj = unmarshaller.unmarshal(is);
 			Article article = (Article) obj;
 			
-			logger.info("Attempting to persist reporter object");
+			logger.info("Checking if Reporter object saved yet");
 			//Save the reporter to the database(Persist) before saving article
-			em.persist(article.getWriter());
+			
+			//Query for Writer
+			try{
+			Reporter reporter = em.find(Reporter.class,article.getWriter().getUsername());
+			if(reporter == null){
+				throw new NoResultException();
+			}
+			
+			logger.info("Reporter already existed in the database");
+			} catch(NoResultException e){// writer doesn't exist
+				logger.info("New Reporter was created");
+				em.persist(article.getWriter());
+			}
 			
 			//Commit the transaction and close the entity manager
 			em.getTransaction().commit();
@@ -60,6 +74,9 @@ public class NewsResource {
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
+		
+		//Create reponse message
+		//TODO
 		return null;
 	}
 	

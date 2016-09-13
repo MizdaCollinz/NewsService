@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 @Entity
 @Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
 public class Reporter extends User {
-	@OneToMany(mappedBy = "writer",fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST,CascadeType.REMOVE})
+	@OneToMany(mappedBy = "writer",fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
 	List<Article> writtenArticles;
 	
 	public Reporter(){
@@ -34,5 +34,9 @@ public class Reporter extends User {
 	
 	public void setWrittenArticle(Article writtenArticle){
 		this.writtenArticles.add(writtenArticle);
+	}
+
+	public String getUsername() {
+		return super.getUserName();
 	}
 }
