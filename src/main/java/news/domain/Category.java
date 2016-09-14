@@ -1,7 +1,10 @@
 package news.domain;
 
+import java.util.List;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Category {
@@ -14,6 +17,15 @@ public class Category {
 	@Id
 	int categoryID;
 	
+	@OneToMany(mappedBy="category")
+	List<Article> articles;
+	
+	public List<Article> getArticles() {
+		return articles;
+	}
+	public void setArticles(List<Article> articles) {
+		this.articles = articles;
+	}
 	public String getCategoryName() {
 		return categoryName;
 	}

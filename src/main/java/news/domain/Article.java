@@ -18,7 +18,7 @@ public class Article {
 	}
 	
 	@Id
-	private int id;
+	private long id;
 	
 	private String title;
 	
@@ -41,10 +41,10 @@ public class Article {
 	public void setWriter(Reporter writer) {
 		this.writer = writer;
 	}
-	public int getId() {
+	public long getId() {
 		return id;
 	}
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 	public String getTitle() {

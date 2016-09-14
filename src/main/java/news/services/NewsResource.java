@@ -4,12 +4,16 @@ import java.io.InputStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -43,7 +47,6 @@ public class NewsResource {
 			
 			logger.info("Checking if Reporter object saved yet");
 			//Save the reporter to the database(Persist) before saving article
-			
 			//Query for Writer
 			try{
 			Reporter reporter = em.find(Reporter.class,article.getWriter().getUsername());
@@ -82,10 +85,46 @@ public class NewsResource {
 	
 	
 	@DELETE
-	@Path("{username}")
-	public void deleteReporter(@PathParam("username") String username){
-		//Todo
+	@Path("/articles/{articleID}")
+	public void deleteArticle(@PathParam("articleID") int articleID){
+		//TODO
 	}
+	
+	@GET
+	@Path("/articles/{articleID}")
+	public Response retrieveArticle(@PathParam("articleID") int articleID){
+		return null;
+		
+	}
+	
+	@GET
+	@Path("/articles")
+	public Response getArticleType(@Context UriInfo info){
+		return null;
+		
+	}
+	
+	@GET
+	@Path("/articles")
+	public Response getSubscribedArticles(@CookieParam("username") String username){
+		return null;
+	}
+	
+	@POST
+	@Path("/categories") // Initialise a category
+	public Response addCategory(InputStream is){
+		return null;
+		
+	}
+	
+	@POST 
+	@Path("/users") //separate Reporters from Readers
+	public Response signupUser(InputStream is){
+		return null;
+		
+	}
+	
+
 	
 	
 	
