@@ -4,6 +4,7 @@ import java.io.InputStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -31,7 +32,7 @@ public class NewsResource {
 	
 	@POST
 	@Path("/articles")
-	@Produces("application/xml")
+	@Consumes("application/xml")
 	public Response postArticle(InputStream is) {
 			logger.info("Calling POST method to create an article");
 		try {
@@ -83,33 +84,6 @@ public class NewsResource {
 		return null;
 	}
 	
-	
-	@DELETE
-	@Path("/articles/{articleID}")
-	public void deleteArticle(@PathParam("articleID") int articleID){
-		//TODO
-	}
-	
-	@GET
-	@Path("/articles/{articleID}")
-	public Response retrieveArticle(@PathParam("articleID") int articleID){
-		return null;
-		
-	}
-	
-	@GET
-	@Path("/articles")
-	public Response getArticleType(@Context UriInfo info){
-		return null;
-		
-	}
-	
-	@GET
-	@Path("/articles")
-	public Response getSubscribedArticles(@CookieParam("username") String username){
-		return null;
-	}
-	
 	@POST
 	@Path("/categories") // Initialise a category
 	public Response addCategory(InputStream is){
@@ -123,6 +97,42 @@ public class NewsResource {
 		return null;
 		
 	}
+	
+	
+	
+	@GET
+	@Path("/articles/{articleID}")
+	public Response retrieveArticle(@PathParam("articleID") int articleID){ //Using Path Params
+		return null;
+		
+	}
+	
+	@GET
+	@Path("/articles")
+	public Response getArticleType(@Context UriInfo info){ //Using Query Params - CHANGE TO MATRIX?
+		return null;
+		
+	}
+	
+	@GET
+	@Path("/articles")
+	public Response getSubscribedArticles(@CookieParam("username") String username){ //Using Cookies
+		return null;
+	}
+	
+	@GET
+	@Path("/categories")
+	public Response getCategories(){
+		return null;
+	}
+	
+	@DELETE
+	@Path("/articles/{articleID}")
+	public void deleteArticle(@PathParam("articleID") int articleID){ //Delete Using Path Params
+		//TODO
+	}
+	
+
 	
 
 	
