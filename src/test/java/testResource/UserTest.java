@@ -1,4 +1,4 @@
-package testPOST;
+package testResource;
 
 import static org.junit.Assert.*;
 
@@ -33,7 +33,7 @@ public class UserTest {
 			
 			//Create Reporter
 			Reporter reporter = new Reporter();
-			reporter.setUserName("Steven101");
+			reporter.setUserName("Steven121");
 			reporter.setFirstName("Steven");
 			reporter.setLastName("Steel");
 			reporter.setCreationYear(2016);
@@ -70,7 +70,7 @@ public class UserTest {
 			
 			//Create Reporter
 			Reader reader = new Reader();
-			reader.setUserName("Steven111");
+			reader.setUserName("Steven131");
 			reader.setFirstName("Steven");
 			reader.setLastName("Steel");
 			reader.setCreationYear(2016);

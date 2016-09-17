@@ -1,4 +1,4 @@
-package testPOST;
+package testResource;
 import static org.junit.Assert.*;
 
 import java.io.StringWriter;
@@ -24,23 +24,11 @@ public class ArticleTest {
 	private static String WEB_SERVICE_URI = "http://localhost:1357/services/news/articles";
 	private static Logger logger = LoggerFactory.getLogger(ArticleTest.class);
 	
-	/*@Test
-	public void testArticle() {
-		
-		
-		
-		
-		//Check Status Code of response
-		
-		//Close Server
-		
-		fail("Not yet implemented");
-	}*/
-	
 	@Test
-	public void testArticlePosting(){
-			if(true){return;}
-			logger.info("Starting article marshalling and POST test");
+	public void testArticle(){
+		
+		// TEST Article POST
+		logger.info("Starting article marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Article.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
@@ -54,7 +42,6 @@ public class ArticleTest {
 			
 			//Create Category
 			Category category = new Category();
-			category.setCategoryID(10);
 			category.setCategoryName("General Content");
 			
 			//Create Article
@@ -82,6 +69,19 @@ public class ArticleTest {
 			
 			e.printStackTrace();
 		}
+		
+		// TEST Article GET
+		
+		logger.info("Starting article retrieval, GET test");
+		
+		String WEB_GET_ARTICLE = WEB_SERVICE_URI + "/1";
+		
+		Client client = ClientBuilder.newClient();
+		
+		logger.info("Attempting to retrieve ARTICLE entity from server");
+		String articleXML = client.target(WEB_GET_ARTICLE).request().get(String.class);
+		
+		logger.info(articleXML);
 	}
-
+	
 }
