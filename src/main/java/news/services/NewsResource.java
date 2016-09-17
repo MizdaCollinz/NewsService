@@ -17,12 +17,15 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import news.domain.Article;
+import news.domain.Category;
+import news.domain.Reader;
 import news.domain.Reporter;
 
 @Path("/news")
@@ -86,14 +89,78 @@ public class NewsResource {
 	
 	@POST
 	@Path("/categories") // Initialise a category
+	@Consumes("application/xml")
 	public Response addCategory(InputStream is){
+		
+		logger.info("Calling POST method to create a new category");
+		
+		try{
+			EntityManager em = PersistenceManager.instance().createEntityManager();
+			em.getTransaction().begin();
+			
+			//Produce unmarshaller using JAXB
+			JAXBContext jaxbContext = JAXBContext.newInstance(Category.class);
+			Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+			//Retrieve article from input stream
+			Object obj = unmarshaller.unmarshal(is);
+			
+			
+			em.getTransaction().commit();
+			em.close();
+			
+		}catch(JAXBException e){
+			e.printStackTrace();
+		}
+		
 		return null;
 		
 	}
 	
 	@POST 
 	@Path("/users") //separate Reporters from Readers
+	@Consumes("application/xml")
 	public Response signupUser(InputStream is){
+		
+		logger.info("Calling POST method to register a new user");
+		JAXBContext jaxbContext1;
+		JAXBContext jaxbContext2;
+		Unmarshaller unmarshaller1 = null;
+		Unmarshaller unmarshaller2 = null;
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		try{
+			em.getTransaction().begin();
+			
+			//Produce unmarshaller using JAXB
+			jaxbContext1 = JAXBContext.newInstance(Reporter.class);
+			jaxbContext2 = JAXBContext.newInstance(Reader.class);
+			
+			unmarshaller1 = jaxbContext1.createUnmarshaller();
+			unmarshaller2 = jaxbContext2.createUnmarshaller();
+		}catch(JAXBException e){
+			e.printStackTrace();
+		}
+			//Retrieve article from input stream
+		try{
+			Object obj = unmarshaller1.unmarshal(is);
+			logger.info("Identified as a Reporter object, successfully unmarshalled.");
+			Reporter reporter = (Reporter) obj;
+			em.persist(reporter);
+		}catch(JAXBException e){
+			logger.info("Identified as a Reader object, attempting to unmarshal.");
+			Object obj = null;
+			try {
+				obj = unmarshaller2.unmarshal(is);
+			} catch (JAXBException e1) {
+				e1.printStackTrace();
+			}
+			Reader reader = (Reader) obj;
+			em.persist(reader);
+		}
+			
+			em.getTransaction().commit();
+			em.close();
+			
+		
 		return null;
 		
 	}
@@ -115,7 +182,7 @@ public class NewsResource {
 	}
 	
 	@GET
-	@Path("/articles")
+	@Path("/articles/subscribed")
 	public Response getSubscribedArticles(@CookieParam("username") String username){ //Using Cookies
 		return null;
 	}
