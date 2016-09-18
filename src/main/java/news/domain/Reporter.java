@@ -19,6 +19,7 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @Inheritance(strategy=InheritanceType.TABLE_PER_CLASS)
 public class Reporter extends User {
+	
 	@XmlTransient
 	@OneToMany(mappedBy = "writer",fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
 	List<Article> writtenArticles;
@@ -26,6 +27,14 @@ public class Reporter extends User {
 	public Reporter(){
 		super();
 		this.writtenArticles = new ArrayList<Article>();
+	}
+	
+	public Reporter(String username, String firstName, String lastName, int creationYear){
+		this.writtenArticles = new ArrayList<Article>();
+		setUserName(username);
+		setFirstName(firstName);
+		setLastName(lastName);
+		setCreationYear(creationYear);
 	}
 
 	public List<Article> getWrittenArticles() {

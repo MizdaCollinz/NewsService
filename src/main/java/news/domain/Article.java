@@ -20,11 +20,17 @@ import javax.xml.bind.annotation.XmlTransient;
 @XmlAccessorType(XmlAccessType.FIELD)
 @Entity
 
-@NamedEntityGraph(name = "graph.Article.writer",attributeNodes=@NamedAttributeNode("writer"))
+@NamedEntityGraph(name = "graph.Article.writer",attributeNodes={@NamedAttributeNode("writer"),@NamedAttributeNode("category")})
 public class Article {
 	
 	public Article(){
 		//Default Constructor
+	}
+	
+	public Article(Reporter writer, Category category, String title){
+		this.writer = writer;
+		this.category = category;
+		this.title = title;
 	}
 	
 	@Id
@@ -33,7 +39,7 @@ public class Article {
 	
 	private String title;
 	
-	@ManyToOne(cascade=CascadeType.PERSIST)
+	@ManyToOne(fetch=FetchType.LAZY)
 	private Category category;
 	
 	@ManyToOne(fetch=FetchType.LAZY, optional=false)

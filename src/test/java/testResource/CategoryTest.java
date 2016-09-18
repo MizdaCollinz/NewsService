@@ -36,6 +36,7 @@ public class CategoryTest {
 			//Create Category
 			Category cat = new Category();
 			cat.setCategoryName("World News");
+			cat.setCategoryID(3);
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();

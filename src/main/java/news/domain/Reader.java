@@ -23,6 +23,14 @@ public class Reader extends User {
 		super();
 		favouriteCategories = new ArrayList<Category>();
 	}
+	
+	public Reader(String username, String firstName, String lastName, int creationYear){
+		favouriteCategories = new ArrayList<Category>();
+		setUserName(username);
+		setFirstName(firstName);
+		setLastName(lastName);
+		setCreationYear(creationYear);
+	}
 
 	public List<Category> getFavouriteCategories() {
 		return favouriteCategories;

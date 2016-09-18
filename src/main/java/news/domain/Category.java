@@ -21,9 +21,13 @@ public class Category {
 		//Default Constructor
 	}
 	
+	public Category(String categoryName, int id){
+		this.categoryName = categoryName;
+		this.categoryID = id;
+	}
+	
 	String categoryName;
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	int categoryID;
 	
 	@XmlTransient

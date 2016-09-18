@@ -26,12 +26,13 @@ public class ArticleTest {
 	
 	@Test
 	public void testArticle(){
+		Marshaller marshaller = null;
 		
 		// TEST Article POST
 		logger.info("Starting article marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Article.class);
-			Marshaller marshaller = jaxbContext.createMarshaller();
+			marshaller = jaxbContext.createMarshaller();
 			
 			//Create Reporter [alternatively provide cookie of existing reporter]
 			Reporter writer = new Reporter();
@@ -43,6 +44,7 @@ public class ArticleTest {
 			//Create Category
 			Category category = new Category();
 			category.setCategoryName("General Content");
+			category.setCategoryID(1);
 			
 			//Create Article
 			Article article = new Article();
@@ -70,7 +72,7 @@ public class ArticleTest {
 			e.printStackTrace();
 		}
 		
-		// TEST Article GET
+		// TEST Article GET - Path Parameters
 		
 		logger.info("Starting article retrieval, GET test");
 		
@@ -82,6 +84,39 @@ public class ArticleTest {
 		String articleXML = client.target(WEB_GET_ARTICLE).request().get(String.class);
 		
 		logger.info(articleXML);
+		
+		
+		//TEST Article Category GET - Matrix Parameters
+		
+		//Posting articles and categories in preparation
+		try{
+		Reporter testReporter = new Reporter("Bobby", "Bob", "Smith", 2016);
+		Category testCat = new Category("Science",2);
+		Article testArticle = new Article(testReporter,testCat,"Test Article 1");
+		Article testArticle2 = new Article(testReporter,testCat,"Test Article 2");
+		StringWriter stringW = new StringWriter();
+		StringWriter stringW2 = new StringWriter();
+		marshaller.marshal(testArticle, stringW);
+		marshaller.marshal(testArticle2, stringW2);
+		String input = stringW.toString();
+		String input2 = stringW2.toString();
+		
+		logger.info("Attempting to post 2 test articles");
+		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input2));
+		
+		} catch(JAXBException e){
+			e.printStackTrace();
+		}
+	
+		logger.info("Starting article retrieval from specified category, GET test");
+		
+		String WEB_GET_ARTICLE_CATEGORY = WEB_SERVICE_URI + ";category=2";
+		
+		String articlesXML = client.target(WEB_GET_ARTICLE_CATEGORY).request().get(String.class);
+		
+		logger.info(articlesXML);
+		
 	}
 	
 }

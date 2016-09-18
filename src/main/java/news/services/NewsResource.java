@@ -9,6 +9,7 @@ import java.io.PrintStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityGraph;
@@ -18,6 +19,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.MatrixParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -67,15 +69,27 @@ public class NewsResource {
 			//Save the reporter to the database(Persist) before saving article
 			//Query for Writer
 			try{
-			Reporter reporter = em.find(Reporter.class,article.getWriter().getUsername());
-			if(reporter == null){
-				throw new NoResultException();
-			}
-			
-			logger.info("Reporter already existed in the database");
+				Reporter reporter = em.find(Reporter.class,article.getWriter().getUsername());
+				if(reporter == null){
+					throw new NoResultException();
+				}
+				
+				logger.info("Reporter already existed in the database");
 			} catch(NoResultException e){// writer doesn't exist
 				logger.info("New Reporter was created");
 				em.persist(article.getWriter());
+			}
+			
+			try{
+				Category category = em.find(Category.class, article.getCategory().getCategoryID());
+				if(category == null){
+					throw new NoResultException();
+				}
+				logger.info("Category already existed in the database");
+				
+			} catch(NoResultException e){
+				logger.info("New Category was created");
+				em.persist(article.getCategory());
 			}
 			
 			//Commit the transaction and close the entity manager
@@ -212,7 +226,7 @@ public class NewsResource {
 		em.getTransaction().begin();
 		
 		logger.info("Attempting to fetch Article");
-		
+		//Use of entity graph to eagerly fetch the referenced Reporter object
 		EntityGraph<?> graph = em.getEntityGraph("graph.Article.writer");
 		Map<String, Object> hints = new HashMap<String, Object>();
 		hints.put("javax.persistence.fetchgraph", graph);
@@ -224,6 +238,7 @@ public class NewsResource {
 		
 		if (article == null){
 			logger.info("No Article found by that id");
+			//TODO throw some exception
 		} else{
 			logger.info("Marshal and return Article object");
 			try {
@@ -255,8 +270,39 @@ public class NewsResource {
 	
 	@GET
 	@Path("/articles")
-	public Response getArticleType(@Context UriInfo info){ //Using Query Params - CHANGE TO MATRIX?
-		return null;
+	public StreamingOutput getArticleType(@MatrixParam("category") int categoryID){ //Using Matrix Paramters
+		logger.info("Retrieve articles from category of identity: " + categoryID);
+		
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+		
+		Category cat = em.find(Category.class,categoryID);
+		final List<Article> articles = cat.getArticles();
+		articles.size();
+		
+		StreamingOutput streamOutput = new StreamingOutput(){
+			public void write(OutputStream outputStream){
+				PrintStream writer = new PrintStream(outputStream);
+				try {
+					JAXBContext context = JAXBContext.newInstance(Article.class);
+					Marshaller marshaller = context.createMarshaller();
+					for(Article article : articles){
+						StringWriter articleWriter = new StringWriter();
+						marshaller.marshal(article, articleWriter);
+						writer.println(articleWriter.toString());
+					}
+				} catch (JAXBException e) {
+					e.printStackTrace();
+				}
+				
+				
+				
+			}
+		};
+		
+		em.getTransaction().commit();
+		em.close();
+		return streamOutput;
 		
 	}
 	
