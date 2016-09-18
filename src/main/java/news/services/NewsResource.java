@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.xml.bind.JAXBContext;
@@ -104,13 +106,13 @@ public class NewsResource {
 			logger.info("Commit article creation transaction");
 			
 			em.close();
-			
+			return Response.created(URI.create("/news/articles/" + article.getId())).build();
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
 		
 		//Create reponse message
-		//TODO
+		
 		return null;
 	}
 	
@@ -140,6 +142,8 @@ public class NewsResource {
 			em.getTransaction().commit();
 			em.close();
 			
+			return Response.created(URI.create("/news/categories/" + cat.getCategoryID())).build();
+			
 		}catch(JAXBException e){
 			e.printStackTrace();
 		}
@@ -153,7 +157,7 @@ public class NewsResource {
 	@Path("/users") //separate Reporters from Readers
 	@Consumes("application/xml")
 	public Response signupUser(InputStream is){
-		
+		String username;
 		logger.info("Calling POST method to register a new user");
 		JAXBContext jaxbContext1;
 		JAXBContext jaxbContext2;
@@ -193,6 +197,7 @@ public class NewsResource {
 			Reporter reporter = (Reporter) obj;
 			logger.info("Attempting to persist reporter object");
 			em.persist(reporter);
+			username = reporter.getUsername();
 		}catch(JAXBException e){
 			logger.info("Identified as a Reader object, attempting to unmarshal.");
 			Object obj = null;
@@ -204,21 +209,21 @@ public class NewsResource {
 			Reader reader = (Reader) obj;
 			logger.info("Attempting to persist reader object");
 			em.persist(reader);
+			username = reader.getUserName();
 		}
 			
 			logger.info("Commit creation of user");
 			em.getTransaction().commit();
 			em.close();
-			
-		//RESPONSE TODO
-		return null;
-		
+			return Response.created(URI.create("/news/users/" + username)).build();
+				
 	}
 	
 	
 	
 	@GET
 	@Path("/articles/{articleID}")
+	@Produces("application/xml")
 	public StreamingOutput retrieveArticle(@PathParam("articleID") int articleID){ //Using Path Params
 		logger.info("Calling GET method to Retrieve article of ID: "+ articleID);
 		
@@ -272,6 +277,7 @@ public class NewsResource {
 	
 	@GET
 	@Path("/articles")
+	@Produces("application/xml")
 	public StreamingOutput getArticleType(@MatrixParam("category") int categoryID){ //Using Matrix Paramters
 		logger.info("Calling GET method to retrieve articles from category of identity: " + categoryID);
 		
@@ -319,6 +325,7 @@ public class NewsResource {
 	
 	@GET
 	@Path("/articles/subscribed")
+	@Produces("application/xml")
 	public StreamingOutput getSubscribedArticles(@CookieParam("username") String username){ //Using Cookies
 		
 		EntityManager em = PersistenceManager.instance().createEntityManager();
@@ -362,6 +369,7 @@ public class NewsResource {
 	
 	@GET
 	@Path("/categories")
+	@Produces("application/xml")
 	public StreamingOutput getCategories(){
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
@@ -396,6 +404,7 @@ public class NewsResource {
 	
 	@GET
 	@Path("/users/{username}")
+	@Produces("application/xml")
 	public StreamingOutput getUser(@PathParam("username") String username){
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
@@ -449,6 +458,7 @@ public class NewsResource {
 	
 	@PUT
 	@Path("/users/{username}")
+	@Consumes("application/xml")
 	public void updateUser(InputStream is,@PathParam("username") String username){
 		logger.info("Calling Update method to update the User: " + username);
 		JAXBContext jaxbContext1;

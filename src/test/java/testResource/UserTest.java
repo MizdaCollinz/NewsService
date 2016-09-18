@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -26,14 +27,14 @@ public class UserTest {
 	@Test
 	public void testReporterPosting(){
 			logger.info("USERTEST");
-			logger.info("Starting User marshalling and POST test");
+			logger.info("Starting Reporter marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Reporter.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			
 			//Create Reporter
 			Reporter reporter = new Reporter();
-			reporter.setUserName("Steven121");
+			reporter.setUserName("Steven101");
 			reporter.setFirstName("Steven");
 			reporter.setLastName("Steel");
 			reporter.setCreationYear(2016);
@@ -49,10 +50,11 @@ public class UserTest {
 			Client client = ClientBuilder.newClient();
 			
 			logger.info("Attempting to post REPORTER entity to the server");
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			Response response = client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
-			
+			assertEquals(response.getStatus(),201);
+			response.close();
 			
 			logger.info("USERTEST - PART TWO");
 			//Attempt to update the Username of Reporter object
@@ -62,12 +64,12 @@ public class UserTest {
 			input = stringW.toString();
 			
 			logger.info("Attempting to update REPORTER entity in the server");
-			client.target(WEB_SERVICE_URI + "/Steven121").request().put(Entity.xml(input));
+			client.target(WEB_SERVICE_URI + "/"+reporter.getUsername()).request().put(Entity.xml(input));
 			
 			
 			logger.info("USERTEST - PART THREE");
 			logger.info("Attempting to get created and updated REPORTER entity from the server");
-			String userXML = client.target(WEB_SERVICE_URI + "/Steven121").request().get(String.class);
+			String userXML = client.target(WEB_SERVICE_URI + "/" + reporter.getUsername()).request().get(String.class);
 			logger.info("Updated user printed as" + userXML);
 			logger.info("Success: <firstName>NotARealName</firstName>");
 			
@@ -80,16 +82,16 @@ public class UserTest {
 	
 	@Test
 	public void testReaderPosting(){
-			logger.info("USERTEST");
-			logger.info("Starting User marshalling and POST test");
+			logger.info("READERTEST");
+			logger.info("Starting Reader marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Reader.class);
 			Marshaller marshaller = jaxbContext.createMarshaller();
 			
 			//Create Reporter
 			Reader reader = new Reader();
-			reader.setUserName("Steven131");
-			reader.setFirstName("Steven");
+			reader.setUserName("Charles101");
+			reader.setFirstName("Charles");
 			reader.setLastName("Steel");
 			reader.setCreationYear(2016);
 			
@@ -103,13 +105,14 @@ public class UserTest {
 			//Start Server and call post method
 			Client client = ClientBuilder.newClient();
 			
-			logger.info("Attempting to post READER entity to the client");
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			logger.info("Attempting to post READER entity to the server");
+			Response response = client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
+			assertEquals(response.getStatus(),201);
+			response.close();
 			
 		} catch (JAXBException e) {
-			
 			e.printStackTrace();
 		}
 		

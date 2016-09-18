@@ -7,6 +7,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -39,8 +40,8 @@ public class ArticleTest {
 			
 			//Create Reporter [alternatively provide cookie of existing reporter]
 			Reporter writer = new Reporter();
-			writer.setUserName("Steven101");
-			writer.setFirstName("Steven");
+			writer.setUserName("Anthony101");
+			writer.setFirstName("Anthony");
 			writer.setLastName("Steel");
 			writer.setCreationYear(2016);
 			
@@ -67,10 +68,11 @@ public class ArticleTest {
 			Client client = ClientBuilder.newClient();
 			
 			logger.info("Attempting to post ARTICLE entity to the client");
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			Response response = client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
-			
+			assertEquals(response.getStatus(),201);
+			response.close();
 		} catch (JAXBException e) {
 			
 			e.printStackTrace();
@@ -94,7 +96,7 @@ public class ArticleTest {
 		logger.info("ARTICLETEST - PART THREE");	
 		logger.info("Starting article retrieval of a particular category, GET test");
 		//Posting articles and categories in preparation
-		Reporter testReporter = new Reporter("Bobby", "Bob", "Smith", 2016);
+		Reporter testReporter = new Reporter("Bobby101", "Bob", "Smith", 2016);
 		Category testCat = new Category("Business",2);
 		Article testArticle = new Article(testReporter,testCat,"Test Article 1");
 		Article testArticle2 = new Article(testReporter,testCat,"Test Article 2");
@@ -108,8 +110,8 @@ public class ArticleTest {
 		String input2 = stringW2.toString();
 		
 		logger.info("Attempting to post 2 test articles");
-		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
-		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input2));
+		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();;
+		client.target(WEB_SERVICE_URI).request().post(Entity.xml(input2)).close();;
 		
 		} catch(JAXBException e){
 			e.printStackTrace();
@@ -126,7 +128,7 @@ public class ArticleTest {
 		
 		logger.info("ARTICLETEST - PART FOUR");
 		logger.info("Post Reader with subscription to Business and National News");
-		Reader reader = new Reader("SubscribedToStuff","Addicted","Reader",2016);
+		Reader reader = new Reader("Subscriber101","Addicted","Reader",2016);
 		reader.setFavouriteCategory(testCat);
 		
 		try {
@@ -135,14 +137,14 @@ public class ArticleTest {
 			Marshaller mar = jaxCon.createMarshaller();
 			mar.marshal(reader,writeRead);
 			String post_user = "http://localhost:1357/services/news/users";
-			client.target(post_user).request().post(Entity.xml(writeRead.toString()));
+			client.target(post_user).request().post(Entity.xml(writeRead.toString())).close();
 			
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
-		NewCookie cookie = new NewCookie("username","SubscribedToStuff");
+		NewCookie cookie = new NewCookie("username","Subscriber101");
 		String subArticlesXML = client.target(WEB_SERVICE_URI + "/subscribed").request().cookie(cookie).get(String.class);
-		logger.info("Retrieved subscription articles for SubscribedToStuff: " + subArticlesXML);
+		logger.info("Retrieved subscription articles for Subscriber101: " + subArticlesXML);
 	}
 	
 }

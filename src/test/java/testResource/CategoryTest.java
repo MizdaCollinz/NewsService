@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -49,10 +50,11 @@ public class CategoryTest {
 			Client client = ClientBuilder.newClient();
 			
 			logger.info("Attempting to post CATEGORY entity to the client");
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			Response response = client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
-			
+			assertEquals(response.getStatus(),201);
+			response.close();
 			
 			
 			//Create several additional categories
@@ -65,17 +67,17 @@ public class CategoryTest {
 			stringW.getBuffer().setLength(0);
 			marshaller.marshal(cat1, stringW);
 			input = stringW.toString();
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();;
 			
 			stringW.getBuffer().setLength(0);
 			marshaller.marshal(cat2, stringW);
 			input = stringW.toString();
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();;
 			
 			stringW.getBuffer().setLength(0);
 			marshaller.marshal(cat3, stringW);
 			input = stringW.toString();
-			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();;
 			
 			
 			logger.info("Attempting to retrieve the full list of categories from the server");
