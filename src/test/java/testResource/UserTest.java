@@ -25,7 +25,7 @@ public class UserTest {
 	
 	@Test
 	public void testReporterPosting(){
-		
+			logger.info("USERTEST");
 			logger.info("Starting User marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Reporter.class);
@@ -48,10 +48,25 @@ public class UserTest {
 			//Start Server and call post method
 			Client client = ClientBuilder.newClient();
 			
-			logger.info("Attempting to post REPORTER entity to the client");
+			logger.info("Attempting to post REPORTER entity to the server");
 			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
+			
+			
+			
+			//Attempt to update the Username of Reporter object
+			reporter.setFirstName("NotARealName");
+			stringW.getBuffer().setLength(0);
+			marshaller.marshal(reporter, stringW);
+			input = stringW.toString();
+			
+			logger.info("Attempting to update REPORTER entity in the server");
+			client.target(WEB_SERVICE_URI + "/Steven121").request().put(Entity.xml(input));
+			
+			String userXML = client.target(WEB_SERVICE_URI + "/Steven121").request().get(String.class);
+			logger.info("Updated user printed as" + userXML);
+			logger.info("Success: <firstName>NotARealName</firstName>");
 			
 		} catch (JAXBException e) {
 			
@@ -62,7 +77,7 @@ public class UserTest {
 	
 	@Test
 	public void testReaderPosting(){
-		
+			logger.info("USERTEST");
 			logger.info("Starting User marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Reader.class);

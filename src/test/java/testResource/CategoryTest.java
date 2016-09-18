@@ -26,8 +26,8 @@ public class CategoryTest {
 	private static Logger logger = LoggerFactory.getLogger(CategoryTest.class);	
 	
 	@Test
-	public void testReaderPosting(){
-		
+	public void testCategoryMethods(){
+			logger.info("CATEGORYTEST");
 			logger.info("Starting Category marshalling and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Category.class);
@@ -35,7 +35,7 @@ public class CategoryTest {
 			
 			//Create Category
 			Category cat = new Category();
-			cat.setCategoryName("World News");
+			cat.setCategoryName("Entertainment");
 			cat.setCategoryID(3);
 			
 			//Convert object to XML string
@@ -52,6 +52,33 @@ public class CategoryTest {
 			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
+			
+			
+			
+			//Create several additional categories
+			logger.info("CATEGORYTEST - PART TWO");
+			logger.info("Posting three new categories to the database");
+			Category cat1 = new Category("Technology",4);
+			Category cat2 = new Category("World News",5);
+			Category cat3 = new Category("Sports",6);
+			
+			stringW.getBuffer().setLength(0);
+			marshaller.marshal(cat1, stringW);
+			input = stringW.toString();
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			
+			stringW.getBuffer().setLength(0);
+			marshaller.marshal(cat2, stringW);
+			input = stringW.toString();
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			
+			stringW.getBuffer().setLength(0);
+			marshaller.marshal(cat3, stringW);
+			input = stringW.toString();
+			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
+			
+			String categoriesAsXML = client.target(WEB_SERVICE_URI).request().get(String.class);
+			logger.info("Retrieved the categories: " + categoriesAsXML);
 			
 		} catch (JAXBException e) {
 			

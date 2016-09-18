@@ -6,8 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,23 +15,21 @@ import java.util.Map;
 import javax.persistence.EntityGraph;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.MatrixParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
 
 import org.apache.commons.io.IOUtils;
@@ -42,6 +40,7 @@ import news.domain.Article;
 import news.domain.Category;
 import news.domain.Reader;
 import news.domain.Reporter;
+import news.domain.User;
 
 @Path("/news")
 public class NewsResource {
@@ -218,7 +217,7 @@ public class NewsResource {
 	@GET
 	@Path("/articles/{articleID}")
 	public StreamingOutput retrieveArticle(@PathParam("articleID") int articleID){ //Using Path Params
-		logger.info("Retrieve article of ID: "+ articleID);
+		logger.info("Calling GET method to Retrieve article of ID: "+ articleID);
 		
 		final String articleXml;
 		
@@ -271,14 +270,9 @@ public class NewsResource {
 	@GET
 	@Path("/articles")
 	public StreamingOutput getArticleType(@MatrixParam("category") int categoryID){ //Using Matrix Paramters
-		logger.info("Retrieve articles from category of identity: " + categoryID);
+		logger.info("Calling GET method to retrieve articles from category of identity: " + categoryID);
 		
-		EntityManager em = PersistenceManager.instance().createEntityManager();
-		em.getTransaction().begin();
-		
-		Category cat = em.find(Category.class,categoryID);
-		final List<Article> articles = cat.getArticles();
-		articles.size();
+		final List<Article> articles = fetchCategoryArticles(categoryID);
 		
 		StreamingOutput streamOutput = new StreamingOutput(){
 			public void write(OutputStream outputStream){
@@ -286,6 +280,7 @@ public class NewsResource {
 				try {
 					JAXBContext context = JAXBContext.newInstance(Article.class);
 					Marshaller marshaller = context.createMarshaller();
+					logger.info("Attempting to marshal retrieved article objects");
 					for(Article article : articles){
 						StringWriter articleWriter = new StringWriter();
 						marshaller.marshal(article, articleWriter);
@@ -300,28 +295,236 @@ public class NewsResource {
 			}
 		};
 		
-		em.getTransaction().commit();
-		em.close();
+		
 		return streamOutput;
 		
 	}
 	
+	public List<Article> fetchCategoryArticles(int categoryID){
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+		
+		Category cat = em.find(Category.class,categoryID);
+		logger.info("Fetching articles from category: " + cat.getCategoryName());
+		final List<Article> articles = cat.getArticles();
+		articles.size();
+		
+		em.getTransaction().commit();
+		em.close();
+		return articles;
+	}
+	
 	@GET
 	@Path("/articles/subscribed")
-	public Response getSubscribedArticles(@CookieParam("username") String username){ //Using Cookies
-		return null;
+	public StreamingOutput getSubscribedArticles(@CookieParam("username") String username){ //Using Cookies
+		
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+		
+		logger.info("Calling GET method to retrieve articles from categories which " + username + " subscribes to");
+		Reader reader = em.find(Reader.class,username);
+		final List<Category> categories = reader.getFavouriteCategories();
+		final List<Article> allArticles = new ArrayList<Article>();
+		categories.size();
+		for(Category cat : categories){
+			allArticles.addAll(fetchCategoryArticles(cat.getCategoryID()));
+		}
+				
+		em.getTransaction().commit();
+		em.close();
+		
+		StreamingOutput streamOutput = new StreamingOutput(){
+			public void write(OutputStream outputStream){
+				PrintStream writer = new PrintStream(outputStream);
+				try {
+					JAXBContext context = JAXBContext.newInstance(Article.class);
+					Marshaller marshaller = context.createMarshaller();
+					logger.info("Attempting to marshal article objects");
+					for(Article article : allArticles){
+						StringWriter articleWriter = new StringWriter();
+						marshaller.marshal(article, articleWriter);
+						writer.println(articleWriter.toString());
+					}
+				} catch (JAXBException e) {
+					e.printStackTrace();
+				}
+				
+				
+				
+			}
+		};
+		
+		return streamOutput;
 	}
 	
 	@GET
 	@Path("/categories")
-	public Response getCategories(){
+	public StreamingOutput getCategories(){
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+			
+		logger.info("Calling Get method to retrieve the list of Categories");
+		TypedQuery<Category> query = em.createQuery("Select c From Category c",Category.class);
+		final List<Category> categories = query.getResultList();
+
+		em.getTransaction().commit();
+		em.close();
+		
+		StreamingOutput streamOutput = new StreamingOutput(){
+			public void write(OutputStream outputStream){
+				PrintStream writer = new PrintStream(outputStream);
+				try {
+					JAXBContext context = JAXBContext.newInstance(Article.class);
+					Marshaller marshaller = context.createMarshaller();
+					for(Category category : categories){
+						StringWriter articleWriter = new StringWriter();
+						marshaller.marshal(category, articleWriter);
+						writer.println(articleWriter.toString());
+					}
+				} catch (JAXBException e) {
+					e.printStackTrace();
+				}	
+			}
+		};
+		
+		return streamOutput;
+	}
+	
+	@GET
+	@Path("/users/{username}")
+	public StreamingOutput getUser(@PathParam("username") String username){
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+		
+		logger.info("Calling Get method to retrieve a User");
+		
+		Reporter reporter = em.find(Reporter.class, username);
+		Reader reader = em.find(Reader.class, username);
+		User output;
+		try {
+			Marshaller marshaller;
+			
+			if(reader != null){
+				output = reader;
+				JAXBContext jaxb = JAXBContext.newInstance(Reader.class);
+				marshaller = jaxb.createMarshaller();
+			} else if(reporter != null){
+				output = reporter;
+				JAXBContext jaxb = JAXBContext.newInstance(Reporter.class);
+				marshaller = jaxb.createMarshaller();
+			} else{
+				logger.info("No User found by that username");
+				marshaller = null;
+				output = null;
+				//TODO Throw exception
+			}
+				
+			StringWriter writer = new StringWriter();
+			marshaller.marshal(output,writer);
+			final String userXML = writer.toString();
+							
+			em.close();
+
+			StreamingOutput streamOutput = new StreamingOutput(){
+				public void write(OutputStream outputStream){
+					PrintStream writer = new PrintStream(outputStream);
+					writer.println(userXML);
+				}
+			};
+			
+			return streamOutput;	
+						
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		}
+		
+		em.getTransaction().commit();
+		em.close();
 		return null;
+	}
+	
+	@PUT
+	@Path("/users/{username}")
+	public void updateUser(InputStream is,@PathParam("username") String username){
+		logger.info("Calling Update method to update a User");
+		JAXBContext jaxbContext1;
+		JAXBContext jaxbContext2;
+		Unmarshaller unmarshaller1 = null;
+		Unmarshaller unmarshaller2 = null;
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		try {
+			IOUtils.copy(is, output);
+		} catch (IOException e2) {
+			e2.printStackTrace();
+		}
+		byte[] bytes = output.toByteArray();
+		ByteArrayInputStream is1 = new ByteArrayInputStream(bytes);
+		ByteArrayInputStream is2 = new ByteArrayInputStream(bytes);
+		
+		try{
+			em.getTransaction().begin();
+			
+			//Produce unmarshaller using JAXB
+			jaxbContext1 = JAXBContext.newInstance(Reporter.class);
+			jaxbContext2 = JAXBContext.newInstance(Reader.class);
+			
+			unmarshaller1 = jaxbContext1.createUnmarshaller();
+			unmarshaller2 = jaxbContext2.createUnmarshaller();
+		}catch(JAXBException e){
+			e.printStackTrace();
+		}
+			//Retrieve the User object from the input stream and determine which type it is
+			//Proceed to update the object with new fields
+		try{
+			Object obj = unmarshaller1.unmarshal(is1);
+			logger.info("Identified as a Reporter object, successfully unmarshalled.");
+			Reporter reporter = (Reporter) obj;
+			
+			logger.info("Update the Reporter object in the database");
+			Reporter oldReporter = em.find(Reporter.class,username);
+			oldReporter.setFirstName(reporter.getFirstName());
+			oldReporter.setLastName(reporter.getLastName());
+			oldReporter.setCreationYear(reporter.getCreationYear());
+			
+			
+			
+		}catch(JAXBException e){
+			try {
+			logger.info("Identified as a Reader object, attempting to unmarshal.");
+			Object obj = unmarshaller2.unmarshal(is2);
+			Reader reader = (Reader) obj;
+			logger.info("Update the Reader object in the database");
+			Reader oldReader = em.find(Reader.class,username);
+			oldReader.setFirstName(reader.getFirstName());
+			oldReader.setLastName(reader.getLastName());
+			oldReader.setCreationYear(reader.getCreationYear());
+			oldReader.setFavouriteCategories(reader.getFavouriteCategories());
+			
+			} catch (JAXBException e1) {
+				e1.printStackTrace();
+			}
+			
+			
+		}
+			
+			logger.info("Commit creation of user");
+			em.getTransaction().commit();
+			em.close();
 	}
 	
 	@DELETE
 	@Path("/articles/{articleID}")
 	public void deleteArticle(@PathParam("articleID") int articleID){ //Delete Using Path Params
-		//TODO
+		EntityManager em = PersistenceManager.instance().createEntityManager();
+		em.getTransaction().begin();
+		
+		Article article = em.find(Article.class,articleID);
+		em.remove(article);
+				
+		em.getTransaction().commit();
+		em.close();
 	}
 	
 

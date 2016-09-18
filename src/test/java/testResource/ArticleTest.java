@@ -29,7 +29,8 @@ public class ArticleTest {
 		Marshaller marshaller = null;
 		
 		// TEST Article POST
-		logger.info("Starting article marshalling and POST test");
+		logger.info("ARTICLETEST");
+		logger.info("Starting storage/submission of an article and POST test");
 		try {
 			JAXBContext jaxbContext = JAXBContext.newInstance(Article.class);
 			marshaller = jaxbContext.createMarshaller();
@@ -43,7 +44,7 @@ public class ArticleTest {
 			
 			//Create Category
 			Category category = new Category();
-			category.setCategoryName("General Content");
+			category.setCategoryName("National News");
 			category.setCategoryID(1);
 			
 			//Create Article
@@ -51,6 +52,7 @@ public class ArticleTest {
 			article.setTitle("The Most General of all the General Content");
 			article.setWriter(writer);
 			article.setCategory(category);
+			writer.setWrittenArticle(article);
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();
@@ -73,8 +75,8 @@ public class ArticleTest {
 		}
 		
 		// TEST Article GET - Path Parameters
-		
-		logger.info("Starting article retrieval, GET test");
+		logger.info("ARTICLETEST - PART TWO");
+		logger.info("Starting article retrieval of a particular article, GET test");
 		
 		String WEB_GET_ARTICLE = WEB_SERVICE_URI + "/1";
 		
@@ -87,11 +89,12 @@ public class ArticleTest {
 		
 		
 		//TEST Article Category GET - Matrix Parameters
-		
+		logger.info("ARTICLETEST - PART THREE");	
+		logger.info("Starting article retrieval of a particular category, GET test");
 		//Posting articles and categories in preparation
 		try{
 		Reporter testReporter = new Reporter("Bobby", "Bob", "Smith", 2016);
-		Category testCat = new Category("Science",2);
+		Category testCat = new Category("Business",2);
 		Article testArticle = new Article(testReporter,testCat,"Test Article 1");
 		Article testArticle2 = new Article(testReporter,testCat,"Test Article 2");
 		StringWriter stringW = new StringWriter();

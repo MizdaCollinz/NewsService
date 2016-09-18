@@ -21,7 +21,7 @@ import javax.xml.bind.annotation.XmlTransient;
 public class Reporter extends User {
 	
 	@XmlTransient
-	@OneToMany(mappedBy = "writer",fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "writer",fetch = FetchType.LAZY)
 	List<Article> writtenArticles;
 	
 	public Reporter(){
