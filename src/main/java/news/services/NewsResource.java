@@ -161,6 +161,9 @@ public class NewsResource {
 		Unmarshaller unmarshaller2 = null;
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		
+		
+		//Store input stream to Byte array in-case first attempt to unmarshal fails
+		//due to it being a Reader object
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
 			IOUtils.copy(is, output);
@@ -339,7 +342,7 @@ public class NewsResource {
 				try {
 					JAXBContext context = JAXBContext.newInstance(Article.class);
 					Marshaller marshaller = context.createMarshaller();
-					logger.info("Attempting to marshal article objects");
+					logger.info("Attempting to marshal retrieved article objects");
 					for(Article article : allArticles){
 						StringWriter articleWriter = new StringWriter();
 						marshaller.marshal(article, articleWriter);
@@ -363,7 +366,7 @@ public class NewsResource {
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
 			
-		logger.info("Calling Get method to retrieve the list of Categories");
+		logger.info("Calling GET method to retrieve a list of all Categories");
 		TypedQuery<Category> query = em.createQuery("Select c From Category c",Category.class);
 		final List<Category> categories = query.getResultList();
 
@@ -376,6 +379,7 @@ public class NewsResource {
 				try {
 					JAXBContext context = JAXBContext.newInstance(Article.class);
 					Marshaller marshaller = context.createMarshaller();
+					logger.info("Attempting to marshal retrieved Category objects");
 					for(Category category : categories){
 						StringWriter articleWriter = new StringWriter();
 						marshaller.marshal(category, articleWriter);
@@ -396,7 +400,7 @@ public class NewsResource {
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
 		
-		logger.info("Calling Get method to retrieve a User");
+		logger.info("Calling GET method to retrieve the User: " + username);
 		
 		Reporter reporter = em.find(Reporter.class, username);
 		Reader reader = em.find(Reader.class, username);
@@ -446,19 +450,22 @@ public class NewsResource {
 	@PUT
 	@Path("/users/{username}")
 	public void updateUser(InputStream is,@PathParam("username") String username){
-		logger.info("Calling Update method to update a User");
+		logger.info("Calling Update method to update the User: " + username);
 		JAXBContext jaxbContext1;
 		JAXBContext jaxbContext2;
 		Unmarshaller unmarshaller1 = null;
 		Unmarshaller unmarshaller2 = null;
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		
+		//Store input stream to Byte array in-case first attempt to unmarshal fails
+		//due to it being a Reader object
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		try {
 			IOUtils.copy(is, output);
 		} catch (IOException e2) {
 			e2.printStackTrace();
 		}
+		
 		byte[] bytes = output.toByteArray();
 		ByteArrayInputStream is1 = new ByteArrayInputStream(bytes);
 		ByteArrayInputStream is2 = new ByteArrayInputStream(bytes);

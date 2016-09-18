@@ -48,7 +48,7 @@ public class CategoryTest {
 			//Start Server and call post method
 			Client client = ClientBuilder.newClient();
 			
-			logger.info("Attempting to post READER entity to the client");
+			logger.info("Attempting to post CATEGORY entity to the client");
 			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
 			// Check status code of reponse and print the URI of the newly created Article
@@ -77,8 +77,11 @@ public class CategoryTest {
 			input = stringW.toString();
 			client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
 			
+			
+			logger.info("Attempting to retrieve the full list of categories from the server");
 			String categoriesAsXML = client.target(WEB_SERVICE_URI).request().get(String.class);
 			logger.info("Retrieved the categories: " + categoriesAsXML);
+			logger.info("Expect a minimum of 4 <Category> entities with the IDs <categoryID> of 3,4,5 and 6");
 			
 		} catch (JAXBException e) {
 			

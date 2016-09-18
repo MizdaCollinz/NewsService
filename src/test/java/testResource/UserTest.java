@@ -54,7 +54,7 @@ public class UserTest {
 			// Check status code of reponse and print the URI of the newly created Article
 			
 			
-			
+			logger.info("USERTEST - PART TWO");
 			//Attempt to update the Username of Reporter object
 			reporter.setFirstName("NotARealName");
 			stringW.getBuffer().setLength(0);
@@ -64,6 +64,9 @@ public class UserTest {
 			logger.info("Attempting to update REPORTER entity in the server");
 			client.target(WEB_SERVICE_URI + "/Steven121").request().put(Entity.xml(input));
 			
+			
+			logger.info("USERTEST - PART THREE");
+			logger.info("Attempting to get created and updated REPORTER entity from the server");
 			String userXML = client.target(WEB_SERVICE_URI + "/Steven121").request().get(String.class);
 			logger.info("Updated user printed as" + userXML);
 			logger.info("Success: <firstName>NotARealName</firstName>");
