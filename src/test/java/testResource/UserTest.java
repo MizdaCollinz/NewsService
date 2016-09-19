@@ -41,8 +41,6 @@ public class UserTest {
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-			marshaller.marshal(reporter,System.out);
 			marshaller.marshal(reporter, stringW);
 			String input = stringW.toString();
 			
@@ -54,7 +52,14 @@ public class UserTest {
 			
 			// Check status code of reponse and print the URI of the newly created Article
 			assertEquals(response.getStatus(),201);
+			String location = response.getLocation().toString();
 			response.close();
+			
+			String user = client.target(location).request().get(String.class);
+			assertTrue(user.contains("<userName>Steven101</userName>"));
+			assertTrue(user.contains("<creationYear>2016</creationYear>"));
+			assertTrue(user.contains("<firstName>Steven</firstName>"));
+			assertTrue(user.contains("<lastName>Steel</lastName>"));
 			
 			logger.info("USERTEST - PART TWO");
 			//Attempt to update the Username of Reporter object
@@ -64,14 +69,17 @@ public class UserTest {
 			input = stringW.toString();
 			
 			logger.info("Attempting to update REPORTER entity in the server");
-			client.target(WEB_SERVICE_URI + "/"+reporter.getUsername()).request().put(Entity.xml(input));
-			
+			response = client.target(WEB_SERVICE_URI + "/"+reporter.getUsername()).request().put(Entity.xml(input));
+			assertEquals(response.getStatus(),204); //Default Response code should be provided 
+		
 			
 			logger.info("USERTEST - PART THREE");
 			logger.info("Attempting to get created and updated REPORTER entity from the server");
 			String userXML = client.target(WEB_SERVICE_URI + "/" + reporter.getUsername()).request().get(String.class);
 			logger.info("Updated user printed as" + userXML);
-			logger.info("Success: <firstName>NotARealName</firstName>");
+			
+			assertTrue(userXML.contains("<firstName>NotARealName</firstName>"));
+			
 			
 		} catch (JAXBException e) {
 			
@@ -97,8 +105,6 @@ public class UserTest {
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-			marshaller.marshal(reader,System.out);
 			marshaller.marshal(reader, stringW);
 			String input = stringW.toString();
 			
@@ -110,7 +116,14 @@ public class UserTest {
 			
 			// Check status code of reponse and print the URI of the newly created Article
 			assertEquals(response.getStatus(),201);
+			String location = response.getLocation().toString();
 			response.close();
+			
+			String user = client.target(location).request().get(String.class);
+			assertTrue(user.contains("<userName>Charles101</userName>"));
+			assertTrue(user.contains("<creationYear>2016</creationYear>"));
+			assertTrue(user.contains("<firstName>Charles</firstName>"));
+			assertTrue(user.contains("<lastName>Steel</lastName>"));
 			
 		} catch (JAXBException e) {
 			e.printStackTrace();

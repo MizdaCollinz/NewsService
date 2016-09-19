@@ -42,7 +42,7 @@ public class Article {
 	@ManyToOne(fetch=FetchType.LAZY)
 	private Category category;
 	
-	@ManyToOne(fetch=FetchType.LAZY, optional=false)
+	@ManyToOne(fetch=FetchType.EAGER, optional=false)
 	private Reporter writer;
 	
 	

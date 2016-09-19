@@ -1,11 +1,14 @@
 package testResource;
 import static org.junit.Assert.*;
 
+import java.io.OutputStream;
 import java.io.StringWriter;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBContext;
@@ -30,6 +33,8 @@ public class ArticleTest {
 	@Test
 	public void testArticle(){
 		Marshaller marshaller = null;
+		String location = null;
+		Category category = null;
 		
 		// TEST Article POST
 		logger.info("ARTICLETEST");
@@ -46,21 +51,19 @@ public class ArticleTest {
 			writer.setCreationYear(2016);
 			
 			//Create Category
-			Category category = new Category();
+			category = new Category();
 			category.setCategoryName("National News");
 			category.setCategoryID(1);
 			
 			//Create Article
 			Article article = new Article();
-			article.setTitle("The Most General of all the General Content");
+			article.setTitle("The National News");
 			article.setWriter(writer);
 			article.setCategory(category);
 			writer.setWrittenArticle(article);
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-			marshaller.marshal(article,System.out);
 			marshaller.marshal(article, stringW);
 			String input = stringW.toString();
 			
@@ -69,7 +72,7 @@ public class ArticleTest {
 			
 			logger.info("Attempting to post ARTICLE entity to the client");
 			Response response = client.target(WEB_SERVICE_URI).request().post(Entity.xml(input));
-			
+			location = response.getLocation().toString();
 			// Check status code of reponse and print the URI of the newly created Article
 			assertEquals(response.getStatus(),201);
 			response.close();
@@ -82,7 +85,7 @@ public class ArticleTest {
 		logger.info("ARTICLETEST - PART TWO");
 		logger.info("Starting article retrieval of a particular article, GET test");
 		
-		String WEB_GET_ARTICLE = WEB_SERVICE_URI + "/1";
+		String WEB_GET_ARTICLE = location;
 		
 		Client client = ClientBuilder.newClient();
 		
@@ -90,7 +93,9 @@ public class ArticleTest {
 		String articleXML = client.target(WEB_GET_ARTICLE).request().get(String.class);
 		
 		logger.info(articleXML);
-		
+		assertTrue(articleXML.contains("<title>The National News</title>"));
+		assertTrue(articleXML.contains("<category><categoryName>National News</categoryName><categoryID>1</categoryID></category>"));
+		assertTrue(articleXML.contains("<writer><userName>Anthony101</userName><creationYear>2016</creationYear><firstName>Anthony</firstName><lastName>Steel</lastName></writer>"));
 		
 		//TEST Article Category GET - Matrix Parameters
 		logger.info("ARTICLETEST - PART THREE");	
@@ -117,19 +122,21 @@ public class ArticleTest {
 			e.printStackTrace();
 		}
 	
-		logger.info("Starting article retrieval from specified category, GET test");
 		
+		logger.info("Starting article retrieval from specified category, GET test");
 		String WEB_GET_ARTICLE_CATEGORY = WEB_SERVICE_URI + ";category=2";
 		
 		String articlesXML = client.target(WEB_GET_ARTICLE_CATEGORY).request().get(String.class);
-		
-		logger.info("Retrieved Articles: " + articlesXML);
+		//Check that the two articles from the subscribed category Business are returned as expected
+		assertTrue(articlesXML.contains("<title>Test Article 1</title>"));
+		assertTrue(articlesXML.contains("<title>Test Article 2</title>"));
 		
 		
 		logger.info("ARTICLETEST - PART FOUR");
-		logger.info("Post Reader with subscription to Business and National News");
+		logger.info("Post Reader with subscription to Business");
 		Reader reader = new Reader("Subscriber101","Addicted","Reader",2016);
 		reader.setFavouriteCategory(testCat);
+		reader.setFavouriteCategory(category);
 		
 		try {
 			StringWriter writeRead = new StringWriter();
@@ -145,6 +152,48 @@ public class ArticleTest {
 		NewCookie cookie = new NewCookie("username","Subscriber101");
 		String subArticlesXML = client.target(WEB_SERVICE_URI + "/subscribed").request().cookie(cookie).get(String.class);
 		logger.info("Retrieved subscription articles for Subscriber101: " + subArticlesXML);
+		
+		assertTrue(subArticlesXML.contains("<title>Test Article 1</title>"));
+		assertTrue(subArticlesXML.contains("<title>Test Article 2</title>"));
+		assertTrue(subArticlesXML.contains("<title>The National News</title>"));
+		
+		
+		logger.info("ARTICLETEST - PART FIVE");
+		logger.info("Asynchronous subscription to articles of Business category");
+		String async_service = "http://localhost:1357/services/news/subscribe/2";
+		final WebTarget target = client.target(async_service);
+		target.request().async().get(new InvocationCallback<OutputStream>(){
+
+			@Override
+			public void completed(OutputStream arg0) {
+				logger.info("Received subscription article: " + arg0.toString());
+				//target.request().async().get(this);
+			}
+
+			@Override
+			public void failed(Throwable arg0) {
+				logger.error("Failed to receive a Business article");
+				try {
+					throw arg0;
+				} catch (Throwable e) {
+					e.printStackTrace();
+				}
+			}
+			
+		});
+		//Post a article relevant to the subscription
+		logger.info("Post an article which should notify the waiting subscriber");
+		try {
+			Client client2 = ClientBuilder.newClient();
+			Article art = new Article(new Reporter("Async101","Async","Response",2016),new Category("Business",2), "Business Article ASYNC");
+			StringWriter stringW = new StringWriter();
+			marshaller.marshal(art, stringW);
+			String input = stringW.toString();
+			client2.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();
+		} catch (JAXBException e){
+			e.printStackTrace();
+		}
+		
 	}
 	
 }

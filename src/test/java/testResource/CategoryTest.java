@@ -41,8 +41,6 @@ public class CategoryTest {
 			
 			//Convert object to XML string
 			StringWriter stringW = new StringWriter();
-			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
-			marshaller.marshal(cat,System.out);
 			marshaller.marshal(cat, stringW);
 			String input = stringW.toString();
 			
@@ -54,7 +52,14 @@ public class CategoryTest {
 			
 			// Check status code of reponse and print the URI of the newly created Article
 			assertEquals(response.getStatus(),201);
+			
+			String location = response.getLocation().toString();
 			response.close();
+			
+			logger.info("Retrieving newly created Category from returned URI location");
+			String category = client.target(location).request().get(String.class);
+			assertTrue(category.contains("<categoryID>3</categoryID>"));
+			assertTrue(category.contains("<categoryName>Entertainment</categoryName>"));
 			
 			
 			//Create several additional categories
@@ -84,6 +89,11 @@ public class CategoryTest {
 			String categoriesAsXML = client.target(WEB_SERVICE_URI).request().get(String.class);
 			logger.info("Retrieved the categories: " + categoriesAsXML);
 			logger.info("Expect a minimum of 4 <Category> entities with the IDs <categoryID> of 3,4,5 and 6");
+			
+			assertTrue(categoriesAsXML.contains("<category><categoryName>Entertainment</categoryName><categoryID>3</categoryID></category>"));
+			assertTrue(categoriesAsXML.contains("<category><categoryName>Technology</categoryName><categoryID>4</categoryID></category>"));
+			assertTrue(categoriesAsXML.contains("<category><categoryName>World News</categoryName><categoryID>5</categoryID></category>"));
+			assertTrue(categoriesAsXML.contains("<category><categoryName>Sports</categoryName><categoryID>6</categoryID></category>"));
 			
 		} catch (JAXBException e) {
 			
