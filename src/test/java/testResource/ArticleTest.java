@@ -150,7 +150,7 @@ public class ArticleTest {
 		} catch (JAXBException e) {
 			e.printStackTrace();
 		}
-		NewCookie cookie = new NewCookie("username","Subscriber101");
+		final NewCookie cookie = new NewCookie("username","Subscriber101");
 		String subArticlesXML = client.target(WEB_SERVICE_URI + "/subscribed").request().cookie(cookie).get(String.class);
 		logger.info("Retrieved subscription articles for Subscriber101: " + subArticlesXML);
 		
@@ -163,12 +163,13 @@ public class ArticleTest {
 		logger.info("Asynchronous subscription to articles of Business category");
 		String async_service = "http://localhost:1357/services/newsA/subscribe/2";
 		final WebTarget target = client.target(async_service);
-		target.request().async().get(new InvocationCallback<String>(){
+		target.request().cookie(cookie).async().get(new InvocationCallback<String>(){
 
 			@Override
 			public void completed(String arg0) {
-				logger.info("Received subscription article: " + arg0);
+				logger.info("ASYNCHRONOUS SUCCESS Received the following article: " + arg0);
 				assertTrue(arg0.contains("<article><id>4</id><title>Business Article ASYNC</title><category><categoryName>Business</categoryName><categoryID>2</categoryID></category><writer><userName>Async101</userName><creationYear>2016</creationYear><firstName>Async</firstName><lastName>Response</lastName></writer></article>"));
+				target.request().cookie(cookie).async().get(this);
 			}
 
 			@Override
@@ -177,7 +178,7 @@ public class ArticleTest {
 				try {
 					throw arg0;
 				} catch (Throwable e) {
-					e.printStackTrace();
+					logger.error("Asynchronous get cancelled, user has been unsubscribed successfully");
 				}
 			}
 			
@@ -190,10 +191,27 @@ public class ArticleTest {
 			StringWriter stringW = new StringWriter();
 			marshaller.marshal(art, stringW);
 			String input = stringW.toString();
+			
 			client2.target("http://localhost:1357/services/newsA/articles").request().post(Entity.xml(input)).close();
+			
+			try {
+				//Allow article to be posted and received before cancelling subscription
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			logger.info("Cancel the subscription to Business category");
+			client2.target(async_service).request().cookie(cookie).delete();
+			
+			
+			client2.close();
 		} catch (JAXBException e){
 			e.printStackTrace();
 		}
+		
+		
+		
+		client.close();
 		
 	}
 

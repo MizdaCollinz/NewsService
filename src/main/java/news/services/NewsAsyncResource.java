@@ -6,10 +6,13 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -32,7 +35,7 @@ import news.domain.Reporter;
 @Path("/newsA")
 
 public class NewsAsyncResource {
-	protected HashMap<Integer, List<AsyncResponse>> responseMap = new HashMap<Integer, List<AsyncResponse>>();
+	protected HashMap<Integer, HashMap<String,AsyncResponse>> responseMap = new HashMap<Integer, HashMap<String,AsyncResponse>>();
 	private static Logger logger = LoggerFactory.getLogger(NewsAsyncResource.class);
 	
 	@POST
@@ -99,10 +102,12 @@ public class NewsAsyncResource {
 					try {
 						int catID = article.getCategory().getCategoryID();
 												
-						List<AsyncResponse> responseList = responseMap.get(catID);
+						HashMap<String,AsyncResponse> responseList = responseMap.get(catID);
 						if (responseList != null) {
+							Set<String> stringList = responseList.keySet();
 							//For each waiting subscriber, marshal the article to a string and pass it back to them
-							for (AsyncResponse resp : responseList) {
+							for (String string : stringList) {
+								AsyncResponse resp = responseList.get(string);
 								StringWriter sWriter = new StringWriter();
 								marshaller.marshal(article, sWriter);
 								resp.resume(sWriter.toString());
@@ -128,17 +133,28 @@ public class NewsAsyncResource {
 	
 	@GET
 	@Path("/subscribe/{categoryid}")
-	public void subscribe(@Suspended AsyncResponse response, @PathParam("categoryid") int categoryId) {
+	public void subscribe(@Suspended AsyncResponse response, @PathParam("categoryid") int categoryId,@CookieParam("username") String username) {
 		logger.info("Adding client to wait list for a particular category: " + categoryId);
 		// Retrieve response list for specified category
-		List<AsyncResponse> responses = responseMap.get(categoryId);
+		HashMap<String,AsyncResponse> responses = responseMap.get(categoryId);
 		// Create list if it doesnt exist
 		while (responses == null) {
-			responseMap.put((Integer)categoryId,new ArrayList<AsyncResponse>());
+			responseMap.put((Integer)categoryId,new HashMap<String,AsyncResponse>());
 			responses = responseMap.get(categoryId);
 		}
 		// Add response to subscription list
-		responses.add(response);		
+		responses.put(username,response);		
+	}
+	
+	@DELETE
+	@Path("/subscribe/{categoryid}")
+	public void unsubscribe(@PathParam("categoryid") int categoryId,@CookieParam("username") String username){
+		logger.info("Removing client from wait list for a particular category: " + categoryId);
+		// Retrieve response list for specified category
+		HashMap<String,AsyncResponse> responses = responseMap.get(categoryId);
+		AsyncResponse response = responses.get(username);
+		logger.info("Subscription cancelled for " + username + " to Category: " + categoryId);
+		response.cancel();
 	}
 	
 }
