@@ -246,7 +246,7 @@ public class NewsResource {
 
 		if (article == null) {
 			logger.info("No Article found by that id");
-			// TODO throw some exception
+			
 		} else {
 			logger.info("Marshal and return Article object");
 			try {
@@ -309,6 +309,7 @@ public class NewsResource {
 
 	}
 
+	//Retrieves all articles listed under a certain category
 	public List<Article> fetchCategoryArticles(int categoryID) {
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
@@ -344,6 +345,7 @@ public class NewsResource {
 		em.getTransaction().commit();
 		em.close();
 
+		//Setup streaming output to return XML strings of article objects
 		StreamingOutput streamOutput = new StreamingOutput() {
 			public void write(OutputStream outputStream) {
 				PrintStream writer = new PrintStream(outputStream);
@@ -380,6 +382,7 @@ public class NewsResource {
 		em.getTransaction().commit();
 		em.close();
 
+		//Setup streaming output to return XML strings of category objects
 		StreamingOutput streamOutput = new StreamingOutput() {
 			public void write(OutputStream outputStream) {
 				PrintStream writer = new PrintStream(outputStream);
@@ -477,15 +480,16 @@ public class NewsResource {
 				logger.info("No User found by that username");
 				marshaller = null;
 				output = null;
-				// TODO Throw exception
 			}
 
+			//Write the user object to a string
 			StringWriter writer = new StringWriter();
 			marshaller.marshal(output, writer);
 			final String userXML = writer.toString();
 
 			em.close();
 
+			//Setup output stream, write the xml of the user to it
 			StreamingOutput streamOutput = new StreamingOutput() {
 				public void write(OutputStream outputStream) {
 					PrintStream writer = new PrintStream(outputStream);
@@ -573,7 +577,7 @@ public class NewsResource {
 
 		}
 
-		logger.info("Commit creation of user");
+		logger.info("Commit update of user");
 		em.getTransaction().commit();
 		em.close();
 	}
@@ -587,6 +591,7 @@ public class NewsResource {
 		EntityManager em = PersistenceManager.instance().createEntityManager();
 		em.getTransaction().begin();
 
+		//Retrieve article object and delete it from the database
 		Article article = em.find(Article.class, articleID);
 		em.remove(article);
 

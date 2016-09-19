@@ -101,6 +101,7 @@ public class NewsAsyncResource {
 												
 						List<AsyncResponse> responseList = responseMap.get(catID);
 						if (responseList != null) {
+							//For each waiting subscriber, marshal the article to a string and pass it back to them
 							for (AsyncResponse resp : responseList) {
 								StringWriter sWriter = new StringWriter();
 								marshaller.marshal(article, sWriter);
