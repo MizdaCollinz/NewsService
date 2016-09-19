@@ -6,25 +6,30 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
+
 @ApplicationPath("/services")
 public class NewsApplication extends Application {
 	
-	private Set<Object> singletons = new HashSet<Object>();
-	private Set<Class<?>> classes = new HashSet<Class<?>>();
+	
+	
 	
 	public NewsApplication(){
-		singletons.add(new NewsResource());
-		singletons.add(PersistenceManager.instance());
-		
 	}
 	
 	@Override
 	   public Set<Object> getSingletons() {
-	      return singletons;
+		Set<Object> singletons = new HashSet<Object>();  
+		
+		singletons.add(new NewsAsyncResource());
+		singletons.add(PersistenceManager.instance());
+		return singletons;
 	   }
 	   
 	   @Override
 	   public Set<Class<?>> getClasses() {
+		   Set<Class<?>> classes = new HashSet<Class<?>>();
+		   
+		   classes.add(NewsResource.class);
 		   return classes;
 	   }
 }

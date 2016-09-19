@@ -1,4 +1,5 @@
 package testResource;
+
 import static org.junit.Assert.*;
 
 import java.io.OutputStream;
@@ -26,10 +27,10 @@ import news.domain.Reporter;
 import news.services.NewsResource;
 
 public class ArticleTest {
-	
+
 	private static String WEB_SERVICE_URI = "http://localhost:1357/services/news/articles";
 	private static Logger logger = LoggerFactory.getLogger(ArticleTest.class);
-	
+
 	@Test
 	public void testArticle(){
 		Marshaller marshaller = null;
@@ -157,17 +158,17 @@ public class ArticleTest {
 		assertTrue(subArticlesXML.contains("<title>Test Article 2</title>"));
 		assertTrue(subArticlesXML.contains("<title>The National News</title>"));
 		
-		
+	// ASYNCHRONOUS TESTING
 		logger.info("ARTICLETEST - PART FIVE");
 		logger.info("Asynchronous subscription to articles of Business category");
-		String async_service = "http://localhost:1357/services/news/subscribe/2";
+		String async_service = "http://localhost:1357/services/newsA/subscribe/2";
 		final WebTarget target = client.target(async_service);
-		target.request().async().get(new InvocationCallback<OutputStream>(){
+		target.request().async().get(new InvocationCallback<String>(){
 
 			@Override
-			public void completed(OutputStream arg0) {
-				logger.info("Received subscription article: " + arg0.toString());
-				//target.request().async().get(this);
+			public void completed(String arg0) {
+				logger.info("Received subscription article: " + arg0);
+				assertTrue(arg0.contains("<article><id>4</id><title>Business Article ASYNC</title><category><categoryName>Business</categoryName><categoryID>2</categoryID></category><writer><userName>Async101</userName><creationYear>2016</creationYear><firstName>Async</firstName><lastName>Response</lastName></writer></article>"));
 			}
 
 			@Override
@@ -189,11 +190,11 @@ public class ArticleTest {
 			StringWriter stringW = new StringWriter();
 			marshaller.marshal(art, stringW);
 			String input = stringW.toString();
-			client2.target(WEB_SERVICE_URI).request().post(Entity.xml(input)).close();
+			client2.target("http://localhost:1357/services/newsA/articles").request().post(Entity.xml(input)).close();
 		} catch (JAXBException e){
 			e.printStackTrace();
 		}
 		
 	}
-	
+
 }

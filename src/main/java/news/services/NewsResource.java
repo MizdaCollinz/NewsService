@@ -52,8 +52,6 @@ public class NewsResource {
 	// Logger
 	private static Logger logger = LoggerFactory.getLogger(NewsResource.class);
 	
-	protected HashMap<Integer, List<AsyncResponse>> responseMap = new HashMap<Integer, List<AsyncResponse>>();
-
 	@POST
 	@Path("/articles")
 	@Consumes("application/xml")
@@ -110,43 +108,6 @@ public class NewsResource {
 
 			em.getTransaction().commit();
 			logger.info("Commit article creation transaction");
-
-			logger.info("Notify waiting subscribers that an article has been submitted");
-
-			new Thread() {
-				public void run() {
-					try {
-						int catID = article.getCategory().getCategoryID();
-						if(responseMap.isEmpty()){
-							logger.info("This stupid map is empty");
-						}
-						
-						List<AsyncResponse> responseList = responseMap.get(catID);
-						if (responseList != null) {
-							logger.info("Response list wasn't null for once");
-							for (AsyncResponse resp : responseList) {
-								final StringWriter sWriter = new StringWriter();
-
-								marshaller.marshal(article, sWriter);
-
-								StreamingOutput streamOutput = new StreamingOutput() {
-									public void write(OutputStream outputStream) {
-										PrintStream writer = new PrintStream(outputStream);
-										writer.println(sWriter.toString());
-									}
-								};
-								resp.resume(streamOutput);
-							}
-							responseList.clear();
-						} else{
-							logger.info("EMPTY RESPONSE LIST for category: " + catID);
-						}
-					} catch (JAXBException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}.start();
 
 			em.close();
 			return Response.created(URI.create("/news/articles/" + article.getId())).build();
@@ -633,35 +594,7 @@ public class NewsResource {
 		em.close();
 	}
 
-	@GET
-	@Produces("application/xml")
-	public void process(final @Suspended AsyncResponse response) {
-		new Thread() {
-			public void run() {
-				// Computation
-				// Result
-				response.resume(null);
-			}
-		}.start();
-	}
 
-	@GET
-	@Path("/subscribe/{categoryid}")
-	public void subscribe(@Suspended AsyncResponse response, @PathParam("categoryid") int categoryId) {
-		logger.info("Adding client to wait list for a particular category: " + categoryId);
-		// Retrieve response list for specified category
-		List<AsyncResponse> responses = responseMap.get(categoryId);
-		// Create list if it doesnt exist
-		if (responses == null) {
-			responses = new ArrayList<AsyncResponse>();
-		}
-		// Add response to subscription list
-		responses.add(response);
-		
-		List<AsyncResponse> responses2 = responseMap.get(categoryId);
-		if(responses2.isEmpty()){
-			logger.error("This stupid map has no response in it");
-		}
-	}
+	
 
 }
